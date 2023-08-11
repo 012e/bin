@@ -1,0 +1,8 @@
+#!/bin/bash
+
+battery0=$(cat /sys/class/power_supply/BAT0/capacity)
+# battery1=$(cat /sys/class/power_supply/BAT1/capacity)
+echo -n $battery0
+if [[ "$(cat /sys/class/power_supply/ADP0/online)" == "1" ]]; then
+	echo -n C
+fi

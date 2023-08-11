@@ -1,0 +1,2 @@
+#!/bin/fish
+foot fish -c 'tmux new-session -s $fish_pid'

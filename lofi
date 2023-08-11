@@ -1,0 +1,5 @@
+#!/bin/sh
+mpv 'https://www.youtube.com/watch?v=jfKfPfyJRdk' --no-video --volume=60
+# Dependencies (arch)
+# youtube-dl
+# mpv

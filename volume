@@ -1,0 +1,34 @@
+#!/usr/bin/bash
+set -e
+function volume_info {
+  volume=$(pamixer --get-volume)
+  muted=$(pamixer --get-mute)
+  if [[ $muted = true ]]; then
+    echo muted
+    return 0
+  fi
+  echo $volume
+}
+
+if [[ $# -eq 0 ]]; then
+  volume_info
+  exit 0
+fi
+
+action=$1
+case $action in
+  "up")
+    pamixer --increase 5 --allow-boost
+    ;;
+  "down")
+    pamixer --decrease 5 --allow-boost
+    ;;
+  "reset")
+    pamixer --unmute
+    pamixer --set-volume 100
+    ;;
+  "toggle")
+    pamixer --toggle-mute
+    ;;
+esac
+dwm-notify "$(volume_info)"
