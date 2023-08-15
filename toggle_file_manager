@@ -6,6 +6,10 @@ current_window=$(xdotool getactivewindow)
 # window is not running yet, launch it
 if ! window_id=$(xdotool search --class "$FILE_MANAGER"); then
   $("$FILE_MANAGER" &> /dev/null) &
+  sleep 1
+  window_id=$(xdotool search --class "$FILE_MANAGER")
+  xdotool windowsize $window_id 1536 864
+  xdotool windowmove $window_id 192 108
   exit 0
 fi
 
