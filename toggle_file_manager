@@ -1,0 +1,18 @@
+#!/bin/bash
+FILE_MANAGER="dolphin"
+target_window=$(xdotool search --class $FILE_MANAGER)
+current_window=$(xdotool getactivewindow)
+
+# window is not running yet, launch it
+if ! window_id=$(xdotool search --class "$FILE_MANAGER"); then
+  $("$FILE_MANAGER" &> /dev/null) &
+  exit 0
+fi
+
+if xdotool search --onlyvisible --class "$FILE_MANAGER"; then
+  echo found
+  xdotool windowunmap $window_id
+else
+  echo not found
+  xdotool windowmap $window_id
+fi
