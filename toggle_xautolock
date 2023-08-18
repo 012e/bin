@@ -1,0 +1,8 @@
+#!/bin/bash
+if [[ $(ps -o state= -p $(pgrep xautolock)) = S ]]; then
+  pkill -STOP xautolock
+  notify-send "xautolock is now disabled"
+else
+  pkill -CONT xautolock
+  notify-send "xautolock is now enabled"
+fi

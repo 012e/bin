@@ -1,0 +1,24 @@
+#!/bin/bash
+BINARY_NAME=$1
+CLASS=$2
+if [[ -z $CUSTOM_CLASS ]]; then
+  CLASS=$BINARY_NAME
+fi   
+
+# window is not running yet, launch it
+if ! window_id=$(xdotool search --class "$CLASS"); then
+  $("$BINARY_NAME" &> /dev/null) &
+  sleep 1
+  window_id=$(xdotool search --class "$CLASS")
+  xdotool windowsize "$window_id" 1536 864
+  xdotool windowmove "$window_id" 192 108
+  exit 0
+fi
+
+if visible_window_id=$(xdotool search --onlyvisible --class "$CLASS"); then
+  echo "Going to hide window with id $visible_window_id"
+  xdotool windowunmap "$visible_window_id"
+else
+  echo "Going to open window with id $window_id"
+  xdotool windowmap "$window_id"
+fi

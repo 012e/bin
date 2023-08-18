@@ -1,0 +1,8 @@
+#!/bin/bash
+if xset q | grep "DPMS is Disabled"; then
+  notify-send "DPMS is on now"
+  xset s on
+else
+  notify-send "DPMS is off now"
+  xset s off
+fi
