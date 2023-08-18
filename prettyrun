@@ -36,10 +36,10 @@ echo -e "$(color "Running " $BLUE)${COMMAND_COLORED}$(color " in $PWD" $BLUE)"
 # execution
 SECONDS=0
 bash -c "$COMMAND"
+run_status=$?
 duration=$SECONDS
 
 # ending
-run_status=$?
 if [[ "$run_status" != "0" ]]; then
   echo -ne $(color "Failed: Exit code $run_status." $RED)
 else

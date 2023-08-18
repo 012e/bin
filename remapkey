@@ -1,4 +1,5 @@
 #!/bin/sh
-setxkbmap -option caps:swapescape     # swap esc <> caps
+set -e
+setxkbmap -option caps:escape # replace caps -> esc
 setxkbmap -option altwin:swap_alt_win # swap alt <> meta
 xset r rate 150 40 &
