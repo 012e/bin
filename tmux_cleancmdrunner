@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Get the current session ID
+session_id=$(tmux display-message -p '#S')
+
+# Iterate through windows in the session
+for window_id in $(tmux list-windows -F '#{window_id}' -t "$session_id"); do
+    window_name=$(tmux display-message -p -t "$session_id:$window_id" '#{window_name}')
+    
+    # Check if the window name starts with "killme"
+    if [[ $window_name == cmdrunner* ]]; then
+        # Close the window
+        tmux kill-window -t "$session_id:$window_id"
+    fi
+done
+
