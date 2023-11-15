@@ -1,4 +1,14 @@
-#!/bin/sh
-mpv $HOME/bin/notify.mp3 --really-quiet &
-# Dependencies
-# mpv
+#!/usr/bin/env python
+import os
+import time
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-l", "--loop", action="store_true")
+args = parser.parse_args()
+
+os.system("mpv $HOME/bin/notify.mp3 --really-quiet")
+if args.loop:
+    while True:
+        time.sleep(0.5)
+        os.system("mpv $HOME/bin/notify.mp3 --really-quiet")
