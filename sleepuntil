@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+from datetime import datetime
+from dateutil import parser
+from time import sleep
+import sys
+
+argv_str = "".join(sys.argv[1:])
+until = parser.parse(argv_str)
+now = datetime.now()
+diff = until - now
+sleep(diff.total_seconds())
