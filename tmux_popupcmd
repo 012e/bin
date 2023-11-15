@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # command to execute in the popup
-command="prettyrun '$1'"
+command="prettyrun '$1' ${@:2}"
 
 # get tmux properties
 # for example $(tmux display-message -p "#{session_name}")
@@ -41,8 +41,23 @@ tmux new-session  -d -s $popup_session &> /dev/null
 popup_active_window=$(get_active_window $popup_session)
 popup_target="${popup_session}:${popup_active_window}"
 
+echo "Running '$command'"
 tmux new-window -t "$popup_session" -n "cmdrunner" "$command"
-if [[ ! $2 == "--silent" ]]; then
-  tmux set-hook -t "$popup_target" "pane-exited" "detach" # detach on enter
-  tmux_popup
+
+SILENT=0
+for arg in "$@"; do
+    if [[ $arg == "--silent" ]]; then
+        echo $arg
+        SILENT=1
+    fi
+done
+
+if [[ $SILENT == 0 ]]; then
+    tmux set-hook -t "$popup_target" "pane-exited" "detach" # detach on enter
+    tmux_popup
+    echo "Ran command"
+else
+    echo "Ran command silently"
 fi
+
+
