@@ -7,5 +7,7 @@ import sys
 argv_str = "".join(sys.argv[1:])
 until = parser.parse(argv_str)
 now = datetime.now()
-diff = until - now
-sleep(diff.total_seconds())
+if (diff := until - now).total_seconds() < 0:
+    print("Can't sleep negative amount of time")
+else:
+    sleep(diff.total_seconds())
