@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo -e "$(cat)" | sed -ze "s/\n/<CR>/g" -ze "s/\t/<TAB>/g"
