@@ -1,0 +1,8 @@
+#!/bin/bash
+# checking for missing dependencies
+for dep in $@
+do
+  [[ $(which $dep 2> /dev/null ) ]] || {
+    echo "$dep needs to be installed. Use \`sudo apt-get install $dep\`";
+  }
+done
