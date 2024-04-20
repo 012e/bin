@@ -4,10 +4,13 @@ from dateutil import parser
 from time import sleep
 import sys
 
+if len(sys.argv) < 2:
+    print("Usage: till <time>")
+    sys.exit(1)
+
 argv_str = "".join(sys.argv[1:])
 until = parser.parse(argv_str)
 now = datetime.now()
-if (diff := until - now).total_seconds() < 0:
-    print("Can't sleep negative amount of time")
-else:
-    sleep(diff.total_seconds())
+if (diff := (until - now).total_seconds()) < 0:
+    print(f"Going to sleep until {until.strftime("%Y-%m-%d %H:%M")}")
+sleep(diff)
