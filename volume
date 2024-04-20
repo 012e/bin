@@ -1,4 +1,6 @@
 #!/usr/bin/bash
+deps vlc pamixer dwm-notify
+
 set -e
 function volume_info {
   volume=$(pamixer --get-volume)
@@ -19,16 +21,25 @@ action=$1
 case $action in
   "up")
     pamixer --increase 5 --allow-boost
+    volume_info
     ;;
   "down")
     pamixer --decrease 5 --allow-boost
+    volume_info
     ;;
   "reset")
     pamixer --unmute
     pamixer --set-volume 100
+    volume_info
     ;;
   "toggle")
     pamixer --toggle-mute
+    volume_info
     ;;
 esac
-dwm-notify "$(volume_info)"
+
+if [[ $(pamixer --get-mute) = true ]]; then
+  dunstify -a progress_bar_blocked -t 1000 -h string:x-dunst-stack-tag:volume -h int:value:"$(pamixer --get-volume)" "Volume"
+else
+  dunstify -a progress_bar -t 1000 -h string:x-dunst-stack-tag:volume -h int:value:"$(pamixer --get-volume)" "Volume"
+fi
