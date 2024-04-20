@@ -1,44 +1,77 @@
 #!/usr/bin/python3
+from re import sub
 import subprocess
 import sys
 import os
+
+def is_wayland() -> bool:
+    return os.environ["XDG_SESSION_TYPE"] == "wayland"
+
+
 def get_screen_name() -> str:
-    return subprocess.getoutput('xrandr -q | grep " connected" | awk \'{print $1}\'')
+    return subprocess.getoutput("xrandr -q | grep \" connected\" | awk '{print $1}'")
+
+
 SCREEN_NAME = get_screen_name()
 
+
 def get_brightness() -> float:
-    return round(float(subprocess.getoutput("xrandr --verbose | grep -m 1 -i brightness | cut -f2 -d ' '")), 2)
+    if is_wayland():
+        current = round(int(subprocess.getoutput("brightnessctl get")))
+        max = round(int(subprocess.getoutput("brightnessctl max")))
+        return round(current * 100 / max) 
+
+    return round(
+        float(
+            subprocess.getoutput(
+                "xrandr --verbose | grep -m 1 -i brightness | cut -f2 -d ' '"
+            )
+        ),
+        2,
+    )
+
 
 def set_brightness(b: float):
+    if is_wayland():
+        os.system(f"brightnessctl set {b}%")
+        return
     os.system(f'xrandr --output "{SCREEN_NAME}" --brightness "{b}"')
 
-def notify(msg):
-    os.system(f"dwm-notify '{msg} ' &")
+
+def notify(brightness: float):
+    current_brightness = round(brightness)
+    os.system(
+        f'notify-send -a progress_bar -t 1000 -h int:value:{current_brightness} "Brightness"'
+    )
+
 
 def invalid_brightness(b: float) -> bool:
-    return b < 0 or b > 1
+    return False
+    # return b < 0 or b > 1
+
 
 def main():
     if len(sys.argv) == 1:
         print(get_brightness())
         exit(0)
-    STEP=0.05
+    STEP = 10
     match sys.argv[1]:
         case "up":
             new_brightness = round(get_brightness() + STEP, 2)
+            print(new_brightness)
             if invalid_brightness(new_brightness):
                 notify(get_brightness())
                 exit(0)
-            notify(new_brightness)
             set_brightness(new_brightness)
+            notify(get_brightness())
 
         case "down":
             new_brightness = round(get_brightness() - STEP, 2)
             if invalid_brightness(new_brightness):
                 notify(get_brightness())
                 exit(0)
-            notify(new_brightness)
             set_brightness(new_brightness)
+            notify(get_brightness())
 
         case "set":
             if len(sys.argv) <= 2:
@@ -52,5 +85,7 @@ def main():
         case _:
             print("Invalid action: ", sys.argv[1])
             exit(1)
+
+
 if __name__ == "__main__":
     main()
