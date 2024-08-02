@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo "$@" | qrencode -o /dev/stdout | xclip -selection clipboard -t image/png
+
+if [[ $? -ne 0 ]]; then
+  echo "Some went wrong. Failed to convert text to qr."
+  exit 1
+else
+  echo "Success."
+  notify-send "qrencode" "Successfully converted text to qr code. Copied to clipboard."
+fi

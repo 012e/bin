@@ -1,0 +1,12 @@
+#!/bin/bash
+
+flameshot gui --raw | zbarimg --quiet /dev/stdin | xclip -selection clipboard
+
+if [[ $? -ne 0 ]]; then
+  echo "Some went wrong. Failed to capture and convert to text."
+  exit 1
+else
+  echo "Success."
+  notify-send "QR scanner" "Converted qr to text, copied text to clipboard."
+fi
+
