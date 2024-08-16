@@ -3,6 +3,10 @@ from re import sub
 import subprocess
 import sys
 import os
+from abc import abstractmethod, ABC
+from typing import override
+
+
 
 def is_wayland() -> bool:
     return os.environ["XDG_SESSION_TYPE"] == "wayland"
@@ -14,64 +18,83 @@ def get_screen_name() -> str:
 
 SCREEN_NAME = get_screen_name()
 
+class BrightnessSetter(ABC):
 
-def get_brightness() -> float:
-    if is_wayland():
-        current = round(int(subprocess.getoutput("brightnessctl get")))
-        max = round(int(subprocess.getoutput("brightnessctl max")))
-        return round(current * 100 / max) 
+    @abstractmethod
+    def _max_relative_brightness(self) -> float:
+        pass
 
-    return round(
-        float(
-            subprocess.getoutput(
-                "xrandr --verbose | grep -m 1 -i brightness | cut -f2 -d ' '"
-            )
-        ),
-        2,
-    )
+    @abstractmethod
+    def _get_current_relative_brightness(self) -> float:
+        pass
 
+    def get_brightness(self) -> float:
+        return self._get_current_relative_brightness() / self._max_relative_brightness()
 
-def set_brightness(b: float):
-    if is_wayland():
-        os.system(f"brightnessctl set {b}%")
-        return
-    os.system(f'xrandr --output "{SCREEN_NAME}" --brightness "{b}"')
+    @abstractmethod
+    def set_brightness(self, new_brightness: float):
+        pass
 
+    def increase_brightness(self, step: float):
+        self.set_brightness(self.get_brightness() + step)
+
+    def decrease_brightness(self, step: float):
+        self.set_brightness(self.get_brightness() - step)
+
+class WaylandBrightness(BrightnessSetter):
+    @override
+    def _max_relative_brightness(self) -> float:
+        return int(subprocess.getoutput("brightnessctl max"))
+
+    @override
+    def _get_current_relative_brightness(self) -> float:
+        return int(subprocess.getoutput("brightnessctl get"))
+
+    @override
+    def set_brightness(self, new_brightness: float):
+        os.system(f"brightnessctl set {max(new_brightness * self._max_relative_brightness(), 0)}%")
+
+class X11Brightness(BrightnessSetter):
+    @override
+    def _max_relative_brightness(self) -> float:
+        return 1
+
+    @override
+    def _get_current_relative_brightness(self) -> float:
+        return float(subprocess.getoutput("xrandr --verbose | grep -m 1 -i brightness | cut -f2 -d ' '"))
+
+    @override
+    def set_brightness(self, new_brightness: float):
+        os.system(f'xrandr --output "{SCREEN_NAME}" --brightness "{max(new_brightness, 0)}"')
 
 def notify(brightness: float):
-    current_brightness = round(brightness)
     os.system(
-        f'notify-send -a progress_bar -t 1000 -h int:value:{current_brightness} "Brightness"'
+        f'notify-send -a progress_bar -t 1000 -h int:value:{brightness*100} "Brightness"'
     )
 
-
-def invalid_brightness(b: float) -> bool:
-    return False
-    # return b < 0 or b > 1
-
+def invalid_brightness(brightness: float) -> bool:
+    return brightness < 0 or brightness > 1
 
 def main():
+    STEP = 0.1
+    setter: BrightnessSetter
+
+    if is_wayland():
+        setter = WaylandBrightness()
+    else:
+        setter = X11Brightness()
+
     if len(sys.argv) == 1:
-        print(get_brightness())
+        print(setter._get_current_relative_brightness())
         exit(0)
-    STEP = 10
     match sys.argv[1]:
         case "up":
-            new_brightness = round(get_brightness() + STEP, 2)
-            print(new_brightness)
-            if invalid_brightness(new_brightness):
-                notify(get_brightness())
-                exit(0)
-            set_brightness(new_brightness)
-            notify(get_brightness())
+            setter.increase_brightness(STEP)
+            notify(setter.get_brightness())
 
         case "down":
-            new_brightness = round(get_brightness() - STEP, 2)
-            if invalid_brightness(new_brightness):
-                notify(get_brightness())
-                exit(0)
-            set_brightness(new_brightness)
-            notify(get_brightness())
+            setter.decrease_brightness(STEP)
+            notify(setter.get_brightness())
 
         case "set":
             if len(sys.argv) <= 2:
@@ -81,7 +104,7 @@ def main():
             if invalid_brightness(new_brightness):
                 print("Invalid brightness: ", sys.argv[2])
                 exit(1)
-            set_brightness(float(sys.argv[2]))
+            setter.set_brightness(new_brightness)
         case _:
             print("Invalid action: ", sys.argv[1])
             exit(1)
