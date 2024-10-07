@@ -1,9 +1,9 @@
 #!/bin/bash
-echo $@
+deps xclip
+
 if [[ -t 0 ]]; then # if stdin is filled
-  xclip -selection clipoard -o
+  xclip -out -selection clipoard
 else
-  stdin=$(cat)
-  echo "$stdin" | xclip $@ -selection clipboard
+  xclip $@ -selection clipboard < /dev/stdin
   echo piped stdin to clipboard
 fi
