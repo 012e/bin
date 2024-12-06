@@ -1,0 +1,25 @@
+#!/bin/bash
+# Script: jwth - Decode JWT Header
+
+# Read from stdin if no argument is provided
+if [ -t 0 ]; then
+    jwt="$1"
+else
+    jwt=$(cat)
+fi
+
+if [ -z "$jwt" ]; then
+    echo "Usage: jwth <jwt> or pipe JWT to stdin"
+    exit 1
+fi
+
+header=$(echo "$jwt" | cut -d "." -f1)
+
+if ! decoded_header=$(echo "$header" | base64 --decode 2>/dev/null); then
+    echo "Error: Invalid JWT header"
+    exit 1
+fi
+
+echo "Decoded JWT Header:"
+echo "$decoded_header" | jq . || echo "$decoded_header"
+

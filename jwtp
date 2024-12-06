@@ -1,0 +1,25 @@
+#!/bin/bash
+# Script: jwtp - Decode JWT Payload
+
+# Read from stdin if no argument is provided
+if [ -t 0 ]; then
+    jwt="$1"
+else
+    jwt=$(cat)
+fi
+
+if [ -z "$jwt" ]; then
+    echo "Usage: jwtp <jwt> or pipe JWT to stdin"
+    exit 1
+fi
+
+payload=$(echo "$jwt" | cut -d "." -f2)
+
+if ! decoded_payload=$(echo "$payload" | base64 --decode 2>/dev/null); then
+    echo "Error: Invalid JWT payload"
+    exit 1
+fi
+
+echo "Decoded JWT Payload:"
+echo "$decoded_payload" | jq . || echo "$decoded_payload"
+
